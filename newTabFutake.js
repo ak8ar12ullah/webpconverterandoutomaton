@@ -28,6 +28,7 @@ export async function newTabFutake(browser, product, id) {
     await newTab.type("#woocommerce-product-search-field-1", product, {
       delay: 30,
     });
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Tunggu autocomplete muncul (max 5 detik)
     await newTab
@@ -41,16 +42,34 @@ export async function newTabFutake(browser, product, id) {
       });
 
     // Ambil elemen pertama
+    // Ambil elemen pertama
     const firstSuggestion = await newTab.$(
       ".autocomplete-suggestions .autocomplete-suggestion[data-index='0']"
     );
+
     if (firstSuggestion) {
-      await firstSuggestion.click();
-      console.log("✅ Klik produk pertama dari autocomplete");
+      // Ambil teks dalam suggestion
+      const suggestionText = await newTab.evaluate(
+        (el) => el.innerText.trim(),
+        firstSuggestion
+      );
+
+      if (suggestionText.includes("Tidak ada produk yang ditemukan")) {
+        console.log("❌ Produk tidak ditemukan di WooCommerce:", product);
+        dbProductNone(product);
+        throw new Error("Produk tidak ditemukan");
+      } else {
+        await firstSuggestion.click();
+        console.log(
+          "✅ Klik produk pertama dari autocomplete:",
+          suggestionText
+        );
+      }
     } else {
       console.log("⚠ Suggestion pertama tidak ditemukan");
-      throw new Error();
+      throw new Error("Suggestion pertama tidak ditemukan");
     }
+
     await newTab.waitForNavigation({ waitUntil: "networkidle0" });
 
     const namaProduct = await newTab.$eval("h1.product-title", (el) =>
@@ -129,4 +148,19 @@ export async function newTabFutake(browser, product, id) {
   } finally {
     if (!newTab.isClosed()) await newTab.close();
   }
+}
+
+function dbProductNone(product) {
+  db.query(
+    "UPDATE product SET rootProductNone = ?  WHERE namaProduct = ?",
+    [true, product],
+    (err) => {
+      if (err) {
+        console.error("❌ Gagal update DB:", err);
+        console.log(`gagal di id ${id} dan nama product ${product}`);
+      } else {
+        console.log("📝 Update DB:", product, "-> root product none");
+      }
+    }
+  );
 }

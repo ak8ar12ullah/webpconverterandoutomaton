@@ -2,6 +2,9 @@ import puppeteer from "puppeteer";
 import db from "./db.js";
 import { newTabFutake } from "./newTabFutake.js";
 
+const webscrap = "https://futakedrain.com/produk/grill-saluran-air/";
+const kategori = 2;
+
 (async () => {
   const browser = await puppeteer.launch({
     headless: false, // tampilkan browser
@@ -11,7 +14,7 @@ import { newTabFutake } from "./newTabFutake.js";
   const page = await browser.newPage();
 
   // buka halaman target
-  await page.goto("https://futakedrain.com/produk/manhole-cover-besi-cor/", {
+  await page.goto(webscrap, {
     waitUntil: "networkidle2",
   });
 
@@ -99,8 +102,8 @@ import { newTabFutake } from "./newTabFutake.js";
                   if (err) return console.error(err);
                   if (results.length === 0) {
                     db.query(
-                      "INSERT INTO product (No, namaProduct, idTag, UrlFutakeDrain, tahap1) VALUES (?,?,1,?,?)",
-                      [item.dataId, item.title, item.url, true],
+                      "INSERT INTO product (No, namaProduct, idTag, UrlFutakeDrain, tahap1) VALUES (?,?,?,?,?)",
+                      [item.dataId, item.title, kategori, item.url, true],
                       async (err, result) => {
                         if (err) console.error(err);
                         else {
@@ -116,8 +119,15 @@ import { newTabFutake } from "./newTabFutake.js";
                     );
                   } else {
                     db.query(
-                      "INSERT INTO product (No, namaProduct,idKarenaSama, idTag, UrlFutakeDrain, tahap1) VALUES (?,?,?,1,?,?)",
-                      [item.dataId, item.title, results[0].No, item.url, true],
+                      "INSERT INTO product (No, namaProduct,idKarenaSama, idTag, UrlFutakeDrain, tahap1) VALUES (?,?,?,?,?,?)",
+                      [
+                        item.dataId,
+                        item.title,
+                        results[0].No,
+                        kategori,
+                        item.url,
+                        true,
+                      ],
                       (err, result) => {
                         if (err) console.error(err);
                         else {
@@ -155,7 +165,7 @@ import { newTabFutake } from "./newTabFutake.js";
 
     // tunggu tombol masuk ke state loading
     await page.waitForSelector("button.eael-load-more-button.button--loading", {
-      timeout: 30000,
+      timeout: 60000,
     });
 
     // tunggu tombol kembali normal (Load More muncul lagi)

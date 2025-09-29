@@ -21,7 +21,9 @@ async function main() {
   // Gunakan promise agar bisa await
   const [results] = await db
     .promise()
-    .query("SELECT No, namaProduct FROM product WHERE tahap2=0");
+    .query(
+      "SELECT No, namaProduct FROM product WHERE tahap2 = 0 AND idKarenaSama IS NULL AND rootProductNone = 0"
+    );
   console.log(results);
   console.log(results.length);
 
