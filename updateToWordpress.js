@@ -40,11 +40,10 @@ async function setFeaturedImage(postId, imageFilename) {
   await page.waitForSelector(featuredSelector, { visible: true });
   await page.click(featuredSelector);
 
-  //   // Tunggu modal media upload muncul
+  // Tunggu modal media upload muncul
   await page.waitForSelector(".media-frame", { visible: true });
 
   // Pilih tab "Upload Files"
-  //   await page.click(".media-menu-item:has-text('Upload Files')");
   await page.click("#menu-item-upload");
 
   // Upload file
@@ -56,30 +55,12 @@ async function setFeaturedImage(postId, imageFilename) {
 
   await page.waitForSelector("#attachment-details-alt-text", { visible: true });
 
-  //   await page.waitForFunction(
-  //     (selector) => {
-  //       const el = document.querySelector(selector);
-  //       return el && !el.disabled;
-  //     },
-  //     {},
-  //     "#attachment-details-alt-text"
-  //   );
   await page.waitForSelector(".attachments .attachment", { visible: true });
 
   console.log(fileName);
-  setTimeout(() => {}, 2000); // hanya delay, tidak ada aksi
+  await setTimeout(() => {}, 2000); // hanya delay, tidak ada aksi
 
-  //   await page.$eval(
-  //     "#attachment-details-alt-text",
-  //     (el, value) => {
-  //       el.value = value;
-  //       el.dispatchEvent(new Event("input", { bubbles: true }));
-  //       el.dispatchEvent(new Event("change", { bubbles: true }));
-  //     },
-  //     fileName
-  //   );
-
-  //   // Tunggu upload selesai
+  // Tunggu upload selesai
   await page.waitForSelector(".attachments .attachment", { visible: true });
 
   await page.waitForFunction(
@@ -112,7 +93,7 @@ async function setFeaturedImage(postId, imageFilename) {
   //   }
 
   await page.type("#attachment-details-alt-text", fileName, {
-    delay: 50,
+    delay: 70,
   });
 
   //   setTimeout(() => {}, 2000); // hanya delay, tidak ada aksi
@@ -146,10 +127,7 @@ async function setFeaturedImage(postId, imageFilename) {
 }
 
 // Contoh pemanggilan
-setFeaturedImage(2232, "Frame-223-1-4.png");
+setFeaturedImage(2232, "manhole-kebumen-2016.png");
 
-
-
-
-tidak bisa memilih image pertama
-tidak bisa publish
+// tidak bisa memilih image pertama
+// tidak bisa publish
