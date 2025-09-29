@@ -2,8 +2,8 @@ import puppeteer from "puppeteer";
 import db from "./db.js";
 import { newTabFutake } from "./newTabFutake.js";
 
-const webscrap = "https://futakedrain.com/produk/grill-saluran-air/";
-const kategori = 2;
+const webscrap = "https://futakedrain.com/proyek-kami/";
+const kategori = 6;
 
 (async () => {
   const browser = await puppeteer.launch({

@@ -1,133 +1,69 @@
 import puppeteer from "puppeteer";
-import path from "path";
-import { hapusAngkaAkhir } from "./hapusAkhirAngka.js";
+import { setFeaturedImage } from "./setFeaturedImage.js";
+import checkImageTahap3 from "./checkImageTahap3.js";
+import db from "./db.js";
 
-const WP_URL = "http://localhost/futake/wp-admin";
-const WP_USER = "Futake"; // ganti
-const WP_PASS = "@Futake12345"; // ganti
-const IMAGE_DIR = path.resolve("./savedImages"); // folder tempat gambar
+const databaseQuery =
+  "SELECT * FROM product WHERE tahap2 = 1 AND verification = 1 AND tahap3 = 0";
+const browser = await puppeteer.launch({
+  headless: false, // tampilkan browser
+  slowMo: 7, // kasih delay antar aksi biar kelihatan (ms)
+  defaultViewport: null, // biar fullscreen, opsional
+});
 
-async function setFeaturedImage(postId, imageFilename) {
-  const browser = await puppeteer.launch({
-    headless: false, // tampilkan browser
-    // slowMo: 40, // kasih delay antar aksi biar kelihatan (ms)
-    defaultViewport: null, // biar fullscreen, opsional
-  });
-  const page = await browser.newPage();
+const pageWpUpload = await browser.newPage();
 
-  // Masuk wp-admin
-  await page.goto(WP_URL, { waitUntil: "networkidle2" });
+let sampaiSelesai = true;
 
-  // Cek apakah sudah login
-  const loggedIn = await page.$("#wpadminbar");
-  if (!loggedIn) {
-    // Login
-    await page.type("#user_login", WP_USER);
-    await page.type("#user_pass", WP_PASS);
-    await page.click("#wp-submit");
-    await page.waitForNavigation({ waitUntil: "networkidle2" });
-    console.log("✅ Logged in WordPress");
-  } else {
-    console.log("⚠ Already logged in, skip login");
+while (sampaiSelesai) {
+  try {
+    await main();
+  } catch (error) {
+    sampaiSelesai = false;
+    console.error(error);
   }
-
-  // Masuk ke edit post
-  const editUrl = `${WP_URL}/post.php?post=${postId}&action=edit`;
-  await page.goto(editUrl, { waitUntil: "networkidle2" });
-
-  // Buka panel Featured Image
-  const featuredSelector = "#set-post-thumbnail"; // tombol "Set featured image"
-  await page.waitForSelector(featuredSelector, { visible: true });
-  await page.click(featuredSelector);
-
-  // Tunggu modal media upload muncul
-  await page.waitForSelector(".media-frame", { visible: true });
-
-  // Pilih tab "Upload Files"
-  await page.click("#menu-item-upload");
-
-  // Upload file
-  const fileInput = await page.$('input[type="file"]');
-  await fileInput.uploadFile(path.join(IMAGE_DIR, imageFilename));
-
-  const nonExt = path.basename(imageFilename, path.extname(imageFilename));
-  const fileName = hapusAngkaAkhir(nonExt);
-
-  await page.waitForSelector("#attachment-details-alt-text", { visible: true });
-
-  await page.waitForSelector(".attachments .attachment", { visible: true });
-
-  console.log(fileName);
-  await setTimeout(() => {}, 2000); // hanya delay, tidak ada aksi
-
-  // Tunggu upload selesai
-  await page.waitForSelector(".attachments .attachment", { visible: true });
-
-  await page.waitForFunction(
-    (name) => !!document.querySelector(`li.attachment[aria-label="${name}"]`),
-    {},
-    nonExt
-  );
-
-  //   // Cek apakah sudah dicentang
-  //   const isChecked = await attachment.evaluate(
-  //     (el) => el.getAttribute("aria-checked") === "true"
-  //   );
-
-  //   if (!isChecked) {
-  //     // klik tombol check jika belum dicentang
-  //     const btn = await attachment.$("button.check");
-  //     if (btn) await btn.click();
-  //     console.log("✅ Item dicentang:", imageFilename);
-  //   } else {
-  //     console.log("⚠ Item sudah dicentang, skip klik:", imageFilename);
-  //   }
-
-  //   penting
-
-  //   const attachment = await page.$(`li.attachment[aria-label="${nonExt}"]`);
-  //   if (!attachment) {
-  //     console.error("⚠ Attachment tidak ditemukan:", nonExt);
-  //     // throw Error(imageFilename);
-  //     return;
-  //   }
-
-  await page.type("#attachment-details-alt-text", fileName, {
-    delay: 70,
-  });
-
-  //   setTimeout(() => {}, 2000); // hanya delay, tidak ada aksi
-
-  // Klik tombol "Set featured image"
-  await page.click(".media-button-select");
-  //   setTimeout(() => {}, 2000); // hanya delay, tidak ada aksi
-
-  await page.evaluate(() => document.querySelector("#publish").click());
-
-  //   // Tunggu spinner muncul (class 'is-active') — opsional, jika spinner muncul dengan delay
-  //   await page
-  //     .waitForSelector(".spinner.is-active", { visible: true, timeout: 5000 })
-  //     .catch(() => {
-  //       console.log("⚠ Spinner tidak muncul, lanjut...");
-  //     });
-
-  //   // Tunggu spinner hilang (tanda proses selesai)
-  //   await page.waitForFunction(() => {
-  //     const spinner = document.querySelector(".spinner");
-  //     return spinner && !spinner.classList.contains("is-active");
-  //   });
-  //   console.log("✅ Update selesai, spinner hilang");
-
-  //   await page.click("#publish");
-
-  console.log(`✅ Featured image set: ${imageFilename}`);
-
-  // Tutup browser
-  //   await browser.close();
 }
 
-// Contoh pemanggilan
-setFeaturedImage(2232, "manhole-kebumen-2016.png");
+// ini masih harus dirubah
 
-// tidak bisa memilih image pertama
-// tidak bisa publish
+async function main() {
+  // Gunakan promise agar bisa await
+  const [results] = await db.promise().query(databaseQuery);
+  //   console.log(results);
+  console.log(results.length);
+
+  if (results.length === 0) {
+    dataMasihAda = false;
+    console.log("✅ Semua data sudah selesai");
+    return;
+  }
+
+  // Proses satu per satu secara urut
+  for (const item of results) {
+    console.log(
+      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ MEMPROSES:",
+      item.namaProduct,
+      " id ",
+      item.No
+    );
+
+    // memproses upload to wordpress
+    console.log(
+      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ UPLOAD WORDPRESS SECTION"
+    );
+    await setFeaturedImage(pageWpUpload, item.No, item.gambarWebP);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // check tahap akhir image
+    console.log(
+      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ LAST CHECK IMAGE PROYEK"
+    );
+    await checkImageTahap3(
+      browser,
+      item.No,
+      item.UrlFutakeDrain,
+      item.gambarWebP
+    );
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+}
