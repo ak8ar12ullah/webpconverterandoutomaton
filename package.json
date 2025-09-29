@@ -1,0 +1,19 @@
+{
+  "name": "otomatisasi-webp",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "fs-extra": "^11.3.2",
+    "mysql2": "^3.15.1",
+    "puppeteer": "^24.22.3",
+    "sharp": "^0.34.4"
+  }
+}
