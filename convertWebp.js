@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 
 /**
- * Convert image ke WebP
+ * Convert image ke WebP, simpan di folder output, skip kalau sudah WebP
  * @param {string} inputPath - path file gambar asli
  * @param {string} outputDir - folder tujuan WebP
  * @param {number} quality - kualitas 0-100 (default 80)
@@ -23,14 +23,21 @@ export async function convertToWebP(
     // pastikan folder output ada
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
-    const ext = path.extname(inputPath);
+    const ext = path.extname(inputPath).toLowerCase();
     const baseName = path.basename(inputPath, ext);
     const outputPath = path.join(outputDir, baseName + ".webp");
 
-    let pipeline = sharp(inputPath);
-    if (width) {
-      pipeline = pipeline.resize(width);
+    if (ext === ".webp") {
+      // jika sudah WebP, copy ke folder tujuan jika belum ada
+      if (inputPath !== outputPath) {
+        fs.copyFileSync(inputPath, outputPath);
+      }
+      return outputPath;
     }
+
+    // konversi ke WebP
+    let pipeline = sharp(inputPath);
+    if (width) pipeline = pipeline.resize(width);
 
     await pipeline.webp({ quality }).toFile(outputPath);
 

@@ -3,23 +3,42 @@ import { setFeaturedImage } from "./setFeaturedImage.js";
 import checkImageTahap3 from "./checkImageTahap3.js";
 import db from "./db.js";
 
+// const databaseQuery = `SELECT p1.No,
+// p1.UrlFutakeDrain,
+//        p1.namaProduct,
+//        p1.idKarenaSama,
+//        p2.gambarWebP AS gambarWebP
+// FROM product p1
+// JOIN product p2 ON p1.idKarenaSama = p2.No
+// WHERE p1.idKarenaSama IS NOT NULL and p2.gambarWebP is not null and p2.verification = 1 and p1.tahap3 = 0;`;
+const altProductName = false;
 const databaseQuery =
-  "SELECT * FROM product WHERE tahap2 = 1 AND verification = 1 AND tahap3 = 0";
+  // "select * from product where rootProductNone = 1 and menyerah = 0 and gambarWebP is not null and tahap2 = 1 and tahap3 = 0";
+  "select * from product where tahap2 = 1 and gambarWebP is not null =  tahap3 = 0;";
 const browser = await puppeteer.launch({
   headless: false, // tampilkan browser
-  slowMo: 7, // kasih delay antar aksi biar kelihatan (ms)
+  slowMo: 25, // kasih delay antar aksi biar kelihatan (ms)
   defaultViewport: null, // biar fullscreen, opsional
 });
 
 const pageWpUpload = await browser.newPage();
 
-let sampaiSelesai = true;
+await pageWpUpload.setRequestInterception(true);
+await pageWpUpload.on("request", (req) => {
+  if (req.resourceType() === "image") {
+    req.abort(); // batalkan request gambar
+  } else {
+    req.continue(); // teruskan request lainnya (JS, CSS, dll)
+  }
+});
 
-while (sampaiSelesai) {
+let dataMasihAda = true;
+
+while (dataMasihAda) {
   try {
     await main();
   } catch (error) {
-    sampaiSelesai = false;
+    dataMasihAda = false;
     console.error(error);
   }
 }
@@ -37,9 +56,11 @@ async function main() {
     console.log("✅ Semua data sudah selesai");
     return;
   }
-
+  let index = 0;
   // Proses satu per satu secara urut
   for (const item of results) {
+    index++;
+    console.log("Perulangan ke : " + index);
     console.log(
       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ MEMPROSES:",
       item.namaProduct,
@@ -51,7 +72,12 @@ async function main() {
     console.log(
       "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ UPLOAD WORDPRESS SECTION"
     );
-    await setFeaturedImage(pageWpUpload, item.No, item.gambarWebP);
+    await setFeaturedImage(
+      pageWpUpload,
+      item.No,
+      item.gambarWebP,
+      altProductName ? item.namaProduct : ""
+    );
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // check tahap akhir image

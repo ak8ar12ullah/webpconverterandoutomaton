@@ -14,7 +14,12 @@ const WP_USER = "Tim Futake"; // ganti
 const WP_PASS = "&s(yKs7S$NZOMuw*@aGvpoUX"; // ganti
 const IMAGE_DIR = path.resolve("./webpImages"); // folder tempat gambar
 
-export async function setFeaturedImage(page, postId, imageFilename) {
+export async function setFeaturedImage(
+  page,
+  postId,
+  imageFilename,
+  productName = ""
+) {
   try {
     // Login jika belum
     await page.goto(WP_URL, { waitUntil: "networkidle2" });
@@ -43,16 +48,17 @@ export async function setFeaturedImage(page, postId, imageFilename) {
     } else {
       // Buka panel Featured Image
       console.log("Buka panel Featured Image");
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const featuredSelector = "#set-post-thumbnail";
-      await new Promise((resolve) => setTimeout(resolve, 2000));
       await page.waitForSelector(featuredSelector, { visible: true });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       await page.click(featuredSelector);
 
       // Tunggu modal media upload muncul
       console.log("Tunggu modal media upload muncul");
       await page.waitForSelector(".media-frame", { visible: true });
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Pilih tab Upload Files
       console.log("Pilih tab Upload Files");
@@ -76,7 +82,7 @@ export async function setFeaturedImage(page, postId, imageFilename) {
         hidden: true,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Ambil attachment pertama
       console.log("📷 Cek attachment pertama...");
@@ -107,7 +113,15 @@ export async function setFeaturedImage(page, postId, imageFilename) {
         {},
         "#attachment-details-alt-text"
       );
-      await page.type("#attachment-details-alt-text", fileName, { delay: 30 });
+      if (productName) {
+        await page.type("#attachment-details-alt-text", productName, {
+          delay: 20,
+        });
+      } else {
+        await page.type("#attachment-details-alt-text", fileName, {
+          delay: 20,
+        });
+      }
 
       // Klik tombol Set Featured Image
       console.log(" Klik tombol Set Featured Image");
@@ -121,7 +135,7 @@ export async function setFeaturedImage(page, postId, imageFilename) {
       await page.waitForSelector("#set-post-thumbnail img", { visible: true });
 
       console.log("✅ Featured image sudah muncul di editor");
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const imageSrc = await page.$eval("#set-post-thumbnail img", (el) =>
         el.getAttribute("src")

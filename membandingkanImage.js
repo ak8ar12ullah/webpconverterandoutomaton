@@ -2,9 +2,13 @@ import { hapusAngkaAkhirExt, hapusResolusiWp } from "./hapusAkhirAngka.js";
 import { ambilAkiranUrl } from "./ambilAkhiranUrl.js";
 
 function bersihkanText(input) {
-  return hapusAngkaAkhirExt(
-    hapusResolusiWp(hapusAngkaAkhirExt(ambilAkiranUrl(input)))
-  );
+  let prev,
+    curr = input;
+  do {
+    prev = curr;
+    curr = hapusAngkaAkhirExt(hapusResolusiWp(curr));
+  } while (curr !== prev); // berhenti kalau sudah tidak berubah
+  return curr;
 }
 
 export function membandingkanImage(urlImage, imageFilename) {

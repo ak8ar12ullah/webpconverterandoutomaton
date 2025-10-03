@@ -9,7 +9,7 @@ const kategori = 6;
   const browser = await puppeteer.launch({
     headless: false, // tampilkan browser
     // slowMo: 200, // kasih delay antar aksi biar kelihatan (ms)
-    // defaultViewport: null, // biar fullscreen, opsional
+    defaultViewport: null, // biar fullscreen, opsional
   });
   const page = await browser.newPage();
 
@@ -19,7 +19,7 @@ const kategori = 6;
   });
 
   // Ambil ID yang sudah ada di database
-  const [existingIds] = await db.promise().query("SELECT No FROM product");
+  const [existingIds] = await db.promise().query("SELECT No FROM product2");
   const processedIds = new Set(existingIds.map((r) => r.No));
 
   console.log("✅ Existing IDs:", processedIds);
@@ -90,19 +90,19 @@ const kategori = 6;
     for (const item of articles) {
       try {
         db.query(
-          "SELECT No FROM product WHERE UrlFutakeDrain = ?",
+          "SELECT No FROM product2 WHERE UrlFutakeDrain = ?",
           [item.url],
           (err, results) => {
             if (err) return console.error(err);
             if (results.length === 0) {
               db.query(
-                "SELECT No FROM product WHERE namaProduct = ?",
+                "SELECT No FROM product2 WHERE namaProduct = ?",
                 [item.title],
                 (err, results) => {
                   if (err) return console.error(err);
                   if (results.length === 0) {
                     db.query(
-                      "INSERT INTO product (No, namaProduct, idTag, UrlFutakeDrain, tahap1) VALUES (?,?,?,?,?)",
+                      "INSERT INTO product2 (No, namaProduct, idTag, UrlFutakeDrain, tahap1) VALUES (?,?,?,?,?)",
                       [item.dataId, item.title, kategori, item.url, true],
                       async (err, result) => {
                         if (err) console.error(err);
@@ -119,7 +119,7 @@ const kategori = 6;
                     );
                   } else {
                     db.query(
-                      "INSERT INTO product (No, namaProduct,idKarenaSama, idTag, UrlFutakeDrain, tahap1) VALUES (?,?,?,?,?,?)",
+                      "INSERT INTO product2 (No, namaProduct,idKarenaSama, idTag, UrlFutakeDrain, tahap1) VALUES (?,?,?,?,?,?)",
                       [
                         item.dataId,
                         item.title,

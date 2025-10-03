@@ -119,8 +119,7 @@ export async function newTabFutake(browser, product, id) {
         }
         // Update DB
         db.query(
-          `UPDATE product 
-   SET gambar = ?, 
+          `UPDATE product set
        UrlFutakeCoId = ?, 
        namaFutakeCoId = ?, 
        tahap2 = ? 
